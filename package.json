@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "css-diff": "^0.4.1",
     "puppeteer": "^3.0.2"
   }
 }

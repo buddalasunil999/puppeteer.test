@@ -1,6 +1,7 @@
-const puppeteer = require("puppeteer");
-const util = require("util");
-const fs = require("fs");
+const puppeteer = require('puppeteer');
+const util = require('util');
+const fs = require('fs');
+const cssDiff = require('css-diff');
 
 async function runCoverage(viewPort) {
   const browser = await puppeteer.launch({
@@ -11,7 +12,7 @@ async function runCoverage(viewPort) {
     await page.setViewport(viewPort);
   }
   await page.coverage.startCSSCoverage();
-  await page.goto("https://www.google.com", { waitUntil: "networkidle2" });
+  await page.goto('http://localhost:50810', { waitUntil: 'networkidle2' });
   const css_coverage = await page.coverage.stopCSSCoverage();
   //console.log(util.inspect(css_coverage, { showHidden: false, depth: null }));
   createCssCoverage(css_coverage, viewPort);
@@ -19,19 +20,20 @@ async function runCoverage(viewPort) {
 }
 
 function createCssCoverage(css_coverage, viewPort) {
-  let final_css_bytes = "";
+  let final_css_bytes = '';
   let total_bytes = 0;
   let used_bytes = 0;
 
   for (const entry of css_coverage) {
+    console.log(entry.url);
     total_bytes += entry.text.length;
     for (const range of entry.ranges) {
       used_bytes += range.end - range.start - 1;
-      final_css_bytes += entry.text.slice(range.start, range.end) + "\n";
+      final_css_bytes += entry.text.slice(range.start, range.end) + '\n';
     }
   }
 
-  let viewPortFile = "";
+  let viewPortFile = '';
   if (viewPort) {
     viewPortFile = `${viewPort.width}x${viewPort.height}`;
   }
@@ -41,14 +43,33 @@ function createCssCoverage(css_coverage, viewPort) {
     final_css_bytes,
     (error) => {
       if (error) {
-        console.log("Error creating file:", error);
+        console.log('Error creating file:', error);
       } else {
-        console.log("File saved");
+        console.log('File saved');
       }
     }
   );
 }
+//@media only screen and (max-width: 479px)
+//@media only screen and (max-width: 767px)
+//@media only screen and (min-width: 768px) and (max-width: 991px)
+//@media only screen and (min-width: 992px) and (max-width: 1199px)
+//@media screen and (max-width: 1400px)
 
-runCoverage({ width: 414, height: 736 }); //iphone
-runCoverage({ width: 1024, height: 1366 }); //ipad pro portrait
-runCoverage({ width: 1366, height: 1024 }); //ipad pro landscape
+Promise.all([
+  runCoverage({ width: 360, height: 640 }),
+  runCoverage({ width: 640, height: 360 }),
+  runCoverage({ width: 768, height: 1024 }),
+  runCoverage({ width: 1024, height: 1366 }),
+  runCoverage({ width: 1366, height: 768 }),
+]).then(() => {
+  cssDiff({
+    files: ['./dist/final_css360x640.css', './dist/final_css640x360.css'],
+    omit: [
+      //optional ability to omit rule types
+      'comment',
+    ],
+  }).then(function (diff) {
+    console.log(diff.different);
+  });
+});
