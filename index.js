@@ -50,11 +50,10 @@ function createCssCoverage(css_coverage, viewPort) {
     }
   );
 }
-//@media only screen and (max-width: 479px)
-//@media only screen and (max-width: 767px)
-//@media only screen and (min-width: 768px) and (max-width: 991px)
-//@media only screen and (min-width: 992px) and (max-width: 1199px)
-//@media screen and (max-width: 1400px)
+//@media only screen and (max-width: 480px)
+//@media only screen and (max-width: 768px)
+//@media only screen and (min-width: 768px) and (max-width: 992px)
+//@media only screen and (min-width: 992px) and (max-width: 1200px)
 
 Promise.all([
   runCoverage({ width: 360, height: 640 }),
